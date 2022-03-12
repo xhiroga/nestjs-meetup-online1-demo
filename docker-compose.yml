@@ -1,0 +1,9 @@
+version: "3.7"
+services:
+  mongo:
+    image: mongo:4.0 # Amazon DocumentDB supports 3.6 and 4.0. We use 4.0.
+    env_file:
+      - .env
+    ports:
+      - "$MONGO_PORT:27017"
+    # TODO: 再起動時にデータをリフレッシュするようにしたほうが良いかも？
