@@ -54,4 +54,25 @@ Databaseでテナントを分割した。
 
 ---
 
+## ORMにMongooseを選定した
+
+
+
+---
+
+## ORMにMongooseを選定した
+
+- [MongoDB \| NestJS \- A progressive Node\.js framework](https://docs.nestjs.com/techniques/mongodb)
+- [MongoDB \(Mongoose\) \| NestJS \- A progressive Node\.js framework](https://docs.nestjs.com/recipes/mongodb)
+
+---
+
+## リクエストスコープでMongooseをInjectするとメモリ不足になる
+
+
+
+- [node\.js \- How to change a Database connection dynamically with Request Scope Providers in Nestjs? \- Stack Overflow](https://stackoverflow.com/questions/55571382/how-to-change-a-database-connection-dynamically-with-request-scope-providers-in)
+
+---
+
 # EOS
