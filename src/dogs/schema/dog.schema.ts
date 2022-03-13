@@ -1,7 +1,7 @@
 import { REQUEST } from "@nestjs/core";
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import { Request } from 'express';
-import { MongoConnectionMapProvider } from "src/mongo-connection-map.provider";
+import { MongooseProvider } from "src/mongoose.provider";
 
 export type DogDocument = Dog & Document;
 
@@ -22,10 +22,10 @@ export const DogSchema = SchemaFactory.createForClass(Dog);
 export const DogModelInjectionToken = "DogModel"
 export const dogModelFactory = {
     provide: DogModelInjectionToken,
-    useFactory: (mongoConnectionMapProvider: MongoConnectionMapProvider, request: Request) => {
+    useFactory: (MongooseProvider: MongooseProvider, request: Request) => {
         const tenantId = request.params.tenantId
         console.debug(`dogModelFactory.useFactory(): tenantId=${tenantId}`)
-        return mongoConnectionMapProvider.getConnection(tenantId).model("Dog", DogSchema)
+        return MongooseProvider.getConnection(tenantId).model("Dog", DogSchema)
     },
-    inject: [MongoConnectionMapProvider, REQUEST]
+    inject: [MongooseProvider, REQUEST]
 }
