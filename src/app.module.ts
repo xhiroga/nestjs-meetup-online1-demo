@@ -5,6 +5,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { CatsModule } from './cats/cats.module';
+import { DogsModule } from './dogs/dogs.module';
 import { MongooseAsyncProvider } from './mongoose-async-provider';
 
 @Module({
@@ -23,7 +24,11 @@ import { MongooseAsyncProvider } from './mongoose-async-provider';
     RouterModule.register([{
       path: ':tenantId',  // RouterModuleで利用するパスでもパラメーターは有効。
       module: CatsModule,
-    }])
+    }, {
+      path: ':tenantId',
+      module: DogsModule,
+    }]),
+    DogsModule
   ],
   controllers: [AppController],
   providers: [AppService, MongooseAsyncProvider],
