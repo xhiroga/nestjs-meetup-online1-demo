@@ -37,7 +37,8 @@ marp: true
 ## 前提
 
 - AWS DocumentDBを用いる
-- 
+    - MongoDB互換のマネージドサービス
+- テナントごとにデータを分離する必要がある
 
 ---
 
@@ -56,22 +57,86 @@ Databaseでテナントを分割した。
 
 ## ORMにMongooseを選定した
 
+MongoDB事例の多さから、手堅くMongooseを選定しました。
 
-
----
-
-## ORMにMongooseを選定した
-
-- [MongoDB \| NestJS \- A progressive Node\.js framework](https://docs.nestjs.com/techniques/mongodb)
-- [MongoDB \(Mongoose\) \| NestJS \- A progressive Node\.js framework](https://docs.nestjs.com/recipes/mongodb)
+|  | NestJSサポート | Pros | Cons |
+| --- | --- | --- | --- |
+| mongoose | 公式Moduleあり | 実績が多い, NestJS公式ドキュメントでも取り上げられている, Transactionが使える | 公式Moduleはあるが、複数Connectionをサポートしていない |
+| Typegoose | - | クラスやデコレーターを使ってモデルを素早く構築できる | 設定難易度が高い |
+| TypeORM | 公式Moduleあり | 事例が多い（ただし、多くはRDBのもの） | MongoDB4系をサポートしておらず、結果Transactionが使えない |
+| MikroORM | MikroORM公式のNestJS Moduleあり
+https://docs.nestjs.com/recipes/mikroorm |  | 事例が少ない |
+| Prisma | Moduleのサポートはなし。ただし、公式ドキュメントに解説あり。
+https://docs.nestjs.com/recipes/prisma |  | MongoDBサポートはPreview |
+| MongoDB SDK | - | ORM相当の処理を自前で書く必要がある | 柔軟性が高い |
 
 ---
 
 ## リクエストスコープでMongooseをInjectするとメモリ不足になる
 
-
+（意訳）MongoDBとのコネクションをリクエストスコープごとに生成すれば、リクエストごとに適切なテナントに接続できるよ。
 
 - [node\.js \- How to change a Database connection dynamically with Request Scope Providers in Nestjs? \- Stack Overflow](https://stackoverflow.com/questions/55571382/how-to-change-a-database-connection-dynamically-with-request-scope-providers-in)
+
+---
+
+## リクエストスコープでMongooseをInjectするとメモリ不足になる
+
+デモ: 
+
+```shell
+# https://github.com/xhiroga/nestjs-meetup-online1-demo
+% yarn dev
+% curl localhost:33000/mytenant/cats
+```
+
+---
+
+## Serviceのメソッド実行時、適切なコネクションでModelを生成する
+
+2通りのやり方が存在する。
+
+1. DIを使わない。ConnectionのPoolを自前で持ち、サービスの呼び出し時にModelを生成する。
+2. DIを使う。Modelをリクエストスコープで宣言し、ConnectionのPoolをするProviderをInjectする。
+
+---
+
+## Serviceのメソッド実行時、適切なコネクションでModelを生成する
+
+### DIを使わないサンプル
+
+```ts
+@Injectable()
+export const CatsService {
+    constructor() {
+        private readonly connectionProvider: ConnectionProvider;
+    }
+
+    async  getCats() {
+        const connection = await this.connectionProvider.getConnection();
+        const cats = await connectionProvider.model('cats').find();
+        return cats;
+    }
+}
+```
+
+```ts
+@Injectable()
+export class ConnectionProvider{
+    // 省略
+    getConnection() {
+        const tenant = this.request.params.tenantId;
+    }
+}
+
+```
+---
+
+## Serviceのメソッド実行時、適切なコネクションでModelを生成する
+
+### DIを使うサンプル
+
+デモ
 
 ---
 
