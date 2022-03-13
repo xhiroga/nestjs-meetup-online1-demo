@@ -39,8 +39,12 @@
 <h1>MongoDBのDatabaseでテナントを分割した</h1>
 <h2>前提</h2>
 <ul>
-<li>AWS DocumentDBを用いる</li>
-<li></li>
+<li>AWS DocumentDBを用いる
+<ul>
+<li>MongoDB互換のマネージドサービス</li>
+</ul>
+</li>
+<li>テナントごとにデータを分離する必要がある</li>
 </ul>
 </section>
 </foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="6">
@@ -80,21 +84,123 @@
 </section>
 </foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="7">
 <h2>ORMにMongooseを選定した</h2>
+<p>MongoDB事例の多さから、手堅くMongooseを選定しました。</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>NestJSサポート</th>
+<th>Pros</th>
+<th>Cons</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>mongoose</td>
+<td>公式Moduleあり</td>
+<td>実績が多い, NestJS公式ドキュメントでも取り上げられている, Transactionが使える</td>
+<td>公式Moduleはあるが、複数Connectionをサポートしていない</td>
+</tr>
+<tr>
+<td>Typegoose</td>
+<td>-</td>
+<td>クラスやデコレーターを使ってモデルを素早く構築できる</td>
+<td>設定難易度が高い</td>
+</tr>
+<tr>
+<td>TypeORM</td>
+<td>公式Moduleあり</td>
+<td>事例が多い（ただし、多くはRDBのもの）</td>
+<td>MongoDB4系をサポートしておらず、結果Transactionが使えない</td>
+</tr>
+<tr>
+<td>MikroORM</td>
+<td>MikroORM公式のNestJS Moduleあり</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="https://docs.nestjs.com/recipes/mikroorm">https://docs.nestjs.com/recipes/mikroorm</a></td>
+<td></td>
+<td>事例が少ない</td>
+<td></td>
+</tr>
+<tr>
+<td>Prisma</td>
+<td>Moduleのサポートはなし。ただし、公式ドキュメントに解説あり。</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="https://docs.nestjs.com/recipes/prisma">https://docs.nestjs.com/recipes/prisma</a></td>
+<td></td>
+<td>MongoDBサポートはPreview</td>
+<td></td>
+</tr>
+<tr>
+<td>MongoDB SDK</td>
+<td>-</td>
+<td>ORM相当の処理を自前で書く必要がある</td>
+<td>柔軟性が高い</td>
+</tr>
+</tbody>
+</table>
 </section>
 </foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="8">
-<h2>ORMにMongooseを選定した</h2>
-<ul>
-<li><a href="https://docs.nestjs.com/techniques/mongodb">MongoDB | NestJS - A progressive Node.js framework</a></li>
-<li><a href="https://docs.nestjs.com/recipes/mongodb">MongoDB (Mongoose) | NestJS - A progressive Node.js framework</a></li>
-</ul>
-</section>
-</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="9">
 <h2>リクエストスコープでMongooseをInjectするとメモリ不足になる</h2>
+<p>（意訳）MongoDBとのコネクションをリクエストスコープごとに生成すれば、リクエストごとに適切なテナントに接続できるよ。</p>
 <ul>
 <li><a href="https://stackoverflow.com/questions/55571382/how-to-change-a-database-connection-dynamically-with-request-scope-providers-in">node.js - How to change a Database connection dynamically with Request Scope Providers in Nestjs? - Stack Overflow</a></li>
 </ul>
 </section>
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="9">
+<h2>リクエストスコープでMongooseをInjectするとメモリ不足になる</h2>
+<p>デモ:</p>
+<pre><code class="language-shell"><svg data-marp-fitting="svg" data-marp-fitting-code><foreignObject><span data-marp-fitting-svg-content><span data-marp-fitting-svg-content-wrap><span class="hljs-meta">#</span><span class="bash"> https://github.com/xhiroga/nestjs-meetup-online1-demo</span>
+<span class="hljs-meta">%</span><span class="bash"> yarn dev</span>
+<span class="hljs-meta">%</span><span class="bash"> curl localhost:33000/mytenant/cats</span>
+</span></span></foreignObject></svg></code></pre>
+</section>
 </foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="10">
+<h2>Serviceのメソッド実行時、適切なコネクションでModelを生成する</h2>
+<p>2通りのやり方が存在する。</p>
+<ol>
+<li>DIを使わない。ConnectionのPoolを自前で持ち、サービスの呼び出し時にModelを生成する。</li>
+<li>DIを使う。Modelをリクエストスコープで宣言し、ConnectionのPoolをするProviderをInjectする。</li>
+</ol>
+</section>
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="11">
+<h2>Serviceのメソッド実行時、適切なコネクションでModelを生成する</h2>
+<h3>DIを使わないサンプル</h3>
+<pre><code class="language-ts"><svg data-marp-fitting="svg" data-marp-fitting-code><foreignObject><span data-marp-fitting-svg-content><span data-marp-fitting-svg-content-wrap><span class="hljs-meta">@Injectable</span>()
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">const</span> CatsService {
+    <span class="hljs-function"><span class="hljs-title">constructor</span>(<span class="hljs-params"></span>)</span> {
+        <span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> connectionProvider: ConnectionProvider;
+    }
+
+    <span class="hljs-keyword">async</span>  <span class="hljs-function"><span class="hljs-title">getCats</span>(<span class="hljs-params"></span>)</span> {
+        <span class="hljs-keyword">const</span> connection = <span class="hljs-keyword">await</span> <span class="hljs-built_in">this</span>.connectionProvider.getConnection();
+        <span class="hljs-keyword">const</span> cats = <span class="hljs-keyword">await</span> connectionProvider.model(<span class="hljs-string">&#x27;cats&#x27;</span>).find();
+        <span class="hljs-keyword">return</span> cats;
+    }
+}
+</span></span></foreignObject></svg></code></pre>
+<pre><code class="language-ts"><svg data-marp-fitting="svg" data-marp-fitting-code><foreignObject><span data-marp-fitting-svg-content><span data-marp-fitting-svg-content-wrap><span class="hljs-meta">@Injectable</span>()
+<span class="hljs-keyword">export</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">ConnectionProvider</span></span>{
+    <span class="hljs-comment">// 省略</span>
+    <span class="hljs-function"><span class="hljs-title">getConnection</span>(<span class="hljs-params"></span>)</span> {
+        <span class="hljs-keyword">const</span> tenant = <span class="hljs-built_in">this</span>.request.params.tenantId;
+    }
+}
+
+</span></span></foreignObject></svg></code></pre>
+</section>
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="12">
+<h2>Serviceのメソッド実行時、適切なコネクションでModelを生成する</h2>
+<h3>DIを使うサンプル</h3>
+<p>デモ</p>
+</section>
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="13">
 <h1>EOS</h1>
 </section>
 <script>!function(){"use strict";const t="marpitSVGPolyfill:setZoomFactor,",e=Symbol();let r,o;function n(n){const i="object"==typeof n&&n.target||document,a="object"==typeof n?n.zoom:n;window[e]||(Object.defineProperty(window,e,{configurable:!0,value:!0}),window.addEventListener("message",(({data:e,origin:r})=>{if(r===window.origin)try{if(e&&"string"==typeof e&&e.startsWith(t)){const[,t]=e.split(","),r=Number.parseFloat(t);Number.isNaN(r)||(o=r)}}catch(t){console.error(t)}})));let l=!1;Array.from(i.querySelectorAll("svg[data-marpit-svg]"),(t=>{var e,n,i,s;t.style.transform||(t.style.transform="translateZ(0)");const c=a||o||t.currentScale||1;r!==c&&(r=c,l=c);const d=t.getBoundingClientRect(),{length:u}=t.children;for(let r=0;r<u;r+=1){const o=t.children[r],a=o.getScreenCTM();if(a){const t=null!==(n=null===(e=o.x)||void 0===e?void 0:e.baseVal.value)&&void 0!==n?n:0,r=null!==(s=null===(i=o.y)||void 0===i?void 0:i.baseVal.value)&&void 0!==s?s:0,l=o.firstElementChild,{style:u}=l;u.transformOrigin||(u.transformOrigin=`${-t}px ${-r}px`),u.transform=`scale(${c}) matrix(${a.a}, ${a.b}, ${a.c}, ${a.d}, ${a.e-d.left}, ${a.f-d.top}) translateZ(0.0001px)`}}})),!1!==l&&Array.from(i.querySelectorAll("iframe"),(({contentWindow:e})=>{null==e||e.postMessage(`${t}${l}`,"null"===window.origin?"*":window.origin)}))}r=1,o=void 0;const i=(t,e,r)=>{if(t.getAttribute(e)!==r)return t.setAttribute(e,r),!0};function a({once:t=!1,target:e=document}={}){const r="Apple Computer, Inc."===navigator.vendor?[n]:[];let o=!t;const a=()=>{for(const t of r)t({target:e});!function(t=document){Array.from(t.querySelectorAll('svg[data-marp-fitting="svg"]'),(t=>{var e;const r=t.firstChild,o=r.firstChild,{scrollWidth:n,scrollHeight:a}=o;let l,s=1;if(t.hasAttribute("data-marp-fitting-code")&&(l=null===(e=t.parentElement)||void 0===e?void 0:e.parentElement),t.hasAttribute("data-marp-fitting-math")&&(l=t.parentElement),l){const t=getComputedStyle(l),e=Math.ceil(l.clientWidth-parseFloat(t.paddingLeft||"0")-parseFloat(t.paddingRight||"0"));e&&(s=e)}const c=Math.max(n,s),d=Math.max(a,1),u=`0 0 ${c} ${d}`;i(r,"width",`${c}`),i(r,"height",`${d}`),i(t,"preserveAspectRatio",getComputedStyle(t).getPropertyValue("--preserve-aspect-ratio")||"xMinYMin meet"),i(t,"viewBox",u)&&t.classList.toggle("__reflow__")}))}(e),o&&window.requestAnimationFrame(a)};return a(),()=>{o=!1}}const l=Symbol(),s=document.currentScript;((t=document)=>{if("undefined"==typeof window)throw new Error("Marp Core's browser script is valid only in browser context.");if(t[l])return t[l];const e=a({target:t}),r=()=>{e(),delete t[l]};Object.defineProperty(t,l,{configurable:!0,value:r})})(s?s.getRootNode():document)}();
