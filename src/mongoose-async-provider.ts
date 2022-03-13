@@ -5,9 +5,9 @@ import { MongooseModuleOptions, MongooseOptionsFactory } from '@nestjs/mongoose'
 import { Request } from 'express';
 
 /**
- * @deprecated Performance issue. This create a new provider per request..
+ * @deprecated Performance issue. This create a new provider per request...
  */
-@Injectable()   // TODO: デフォルトスコープのInjectableでREQUESTを指定しているが、これはどうなるか？
+@Injectable()   // TODO: Providerがデフォルトスコープなのに、RequestスコープのrequestオブジェクトをInjectできるのはなぜだろう？
 export class MongooseAsyncProvider implements MongooseOptionsFactory {
     constructor(
         @Inject(REQUEST) private readonly request: Request,
