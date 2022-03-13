@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { RouterModule } from '@nestjs/core';
 import { MongooseModule } from '@nestjs/mongoose';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -18,7 +19,11 @@ import { MongooseAsyncProvider } from './mongoose-async-provider';
     MongooseModule.forRootAsync({
       useClass: MongooseAsyncProvider,
     }),
-    CatsModule
+    CatsModule,
+    RouterModule.register([{
+      path: ':tenantId',  // RouterModuleで利用するパスでもパラメーターは有効。
+      module: CatsModule,
+    }])
   ],
   controllers: [AppController],
   providers: [AppService, MongooseAsyncProvider],
