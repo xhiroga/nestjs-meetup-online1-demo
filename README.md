@@ -13,8 +13,7 @@ marp: true
 - はじめに
 - NestJS × マルチテナント × MongoDB
 - NestJS × マルチテナント × 認証
-- NestJS × マルチテナント × カスタム要件
-- NestJS × マルチテナント × 運用
+- NestJS × マルチテナント × ロギング
 
 ---
 
@@ -179,6 +178,14 @@ export class ConnectionProvider{
 
 単にMongooseをリクエストスコープで利用するとコネクション数に問題が発生する。
 MongoDBのコネクションを自前で管理し、Model生成時に適切に注入することで要件とパフォーマンスを両立できる。
+
+---
+
+# NestJS × マルチテナント × ロギング
+
+---
+
+
 
 ---
 

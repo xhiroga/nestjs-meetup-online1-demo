@@ -2,6 +2,8 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { RouterModule } from '@nestjs/core';
 import { MongooseModule } from '@nestjs/mongoose';
+import { LoggerModule } from 'nestjs-pino';
+import { v4 } from 'uuid';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { CatsModule } from './cats/cats.module';
@@ -15,6 +17,13 @@ import { MongooseAsyncProvider } from './mongoose-async.provider';
       isGlobal: true,
       // If not exists, just ignored.
       envFilePath: '.env.local',
+    }),
+    LoggerModule.forRootAsync({
+      useFactory: async () => {
+        return {
+          pinoHttp: { level: 'debug', genReqId: () => v4() },
+        };
+      }
     }),
     // MongooseModuleはDynamicModuleで提供される。接続情報の読み込みが必要なため、import時にプロパティや振る舞いを可変にできるDynamicModuleが望ましい。
     MongooseModule.forRootAsync({
