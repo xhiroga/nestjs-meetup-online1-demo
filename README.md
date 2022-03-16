@@ -18,6 +18,40 @@ marp: true
 
 ---
 
+# はじめに
+
+---
+
+## 自己紹介
+
+[さわら \(@xhiroga\) / Twitter](https://twitter.com/xhiroga)
+
+---
+
+## 会社紹介
+
+[株式会社 justInCaseTechnologies \| 保険を変える保険テック会社](https://justincase-tech.com/)
+
+---
+
+## プロダクト紹介
+
+[保険SaaS基盤: joinsure｜株式会社justInCase：少額短期保険](https://justincase.jp/joinsure)
+
+---
+
+## チーム紹介
+
+### 技術
+
+---
+
+## チーム紹介
+
+### 文化
+
+---
+
 # NestJS × マルチテナント × MongoDB
 
 ---
@@ -137,6 +171,14 @@ export class ConnectionProvider{
 ### DIを使うサンプル
 
 デモ
+
+
+---
+
+## まとめ
+
+単にMongooseをリクエストスコープで利用するとコネクション数に問題が発生する。
+MongoDBのコネクションを自前で管理し、Model生成時に適切に注入することで要件とパフォーマンスを両立できる。
 
 ---
 
