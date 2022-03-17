@@ -1,9 +1,10 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { APP_GUARD } from '@nestjs/core';
+import { APP_FILTER, APP_GUARD } from '@nestjs/core';
 import { MongooseModule } from '@nestjs/mongoose';
 import { LoggerModule } from 'nestjs-pino';
 import { v4 } from 'uuid';
+import { AllExceptionsFilter } from './all-exceptions.filter';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthGuard } from './auth.guard';
@@ -31,11 +32,19 @@ import { MongooseAsyncProvider } from './mongoose-async.provider';
       useClass: MongooseAsyncProvider,
     }),
     CatsModule,
-    DogsModule
+    DogsModule,
   ],
   controllers: [AppController],
-  providers: [AppService, {
-    provide: APP_GUARD, useClass: AuthGuard
-  }, MongooseAsyncProvider],
+  providers: [
+    AppService,
+    {
+      provide: APP_FILTER,
+      useClass: AllExceptionsFilter
+    },
+    {
+      provide: APP_GUARD, useClass: AuthGuard
+    },
+    MongooseAsyncProvider
+  ],
 })
 export class AppModule { }

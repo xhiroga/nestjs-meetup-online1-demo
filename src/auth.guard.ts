@@ -1,4 +1,5 @@
-import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
+import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
+import { Request } from 'express';
 import { PinoLogger } from 'nestjs-pino';
 import { Observable } from 'rxjs';
 
@@ -11,13 +12,13 @@ export class AuthGuard implements CanActivate {
     canActivate(
         context: ExecutionContext,
     ): boolean | Promise<boolean> | Observable<boolean> {
-        const request = context.switchToHttp().getRequest();
+        const request: Request = context.switchToHttp().getRequest();
         if (request.path === '/') {
             return true
         }
         const tenantId = request.headers['x-tenant-id']; // ヘッダーは全て小文字に変換される。
         if (tenantId !== undefined) {
-            request.tenantId = tenantId;
+            request['tenantId'] = tenantId;
             this.logger.debug(`canActivate(): tenantId=${tenantId}`);
             this.logger.assign({ tenantId })
             return true

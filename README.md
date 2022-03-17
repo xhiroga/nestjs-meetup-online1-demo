@@ -11,9 +11,10 @@ marp: true
 # Agenda
 
 - はじめに
-- NestJS × マルチテナント × MongoDB
 - NestJS × マルチテナント × 認証
+- NestJS × マルチテナント × MongoDB
 - NestJS × マルチテナント × ロギング
+- おわりに
 
 ---
 
@@ -51,11 +52,57 @@ marp: true
 
 ---
 
+# NestJS × マルチテナント × 認証
+
+---
+
+## TL;DR
+
+- 認可トークンを用いたテナントIDの取得を一箇所で行うため、AuthGuardで認証を行う
+- テナントIDをLoggerに注入するために、useClass構文を用いる
+
+---
+
+## AuthGuardで認証を行う
+
+- ヘッダーやパス、サブドメインからテナントIDを取得する場合、必ずしもAuthGuardは必要ではない
+- OAuthを用いて認可を行い、AccessTokenからテナントIDを取得する場合、AuthGuardは必要
+- 今回のデモでは簡略化のためヘッダーからテナントIDを取得する
+
+---
+
+See [AuthGuard](./src/auth.guard.ts)
+
+---
+
+## useClass構文を使うことで、LoggerをDIできる
+
+- NestJSでは、GuardのようなMiddleWareもProviderである
+- ただし、`app.useGlobalGuards()` で追加した場合、DIのタイミングを逃してしまう
+- AppModuleのようなトップレベルのモジュールに対し、特定のInjectionTokenを用いてInjectすることで、DIのタイミングを逃さずにGlobalGuard同様に運用できる
+
+### 参考
+
+- [Custom providers \| NestJS \- A progressive Node\.js framework](https://docs.nestjs.com/fundamentals/custom-providers)
+
+---
+
+See [AppModule](./src/app.module.ts)
+
+---
+
+## TL;DR
+
+- AuthGuardで認証を行い、テナントIDをどこからでも取得可能にした
+- useClass構文でトップレベルのモジュールにAuthGuardを注入することで、LoggerをDIできた
+
+---
+
 # NestJS × マルチテナント × MongoDB
 
 ---
 
-# TL;DR
+## TL;DR
 
 - MongoDBのDatabaseでテナントを分割した
 - ORMにMongooseを選定した
@@ -65,9 +112,7 @@ marp: true
 
 ---
 
-# MongoDBのDatabaseでテナントを分割した
-
-## 前提
+## MongoDBのDatabaseでテナントを分割した
 
 - AWS DocumentDBを用いる
     - MongoDB互換のマネージドサービス
@@ -185,7 +230,64 @@ MongoDBのコネクションを自前で管理し、Model生成時に適切に�
 
 ---
 
+## TL;DR
 
+- ログにRequestIdとTenantIdを含める
+- 全てのErrorをCatchするExceptionFilterを実装し、エラーをロギングする
+
+---
+
+## ログにRequestIdとTenantIdを含める。
+
+- `nestjs-pino` を用いる
+- `AuthGuard` でRequestIdを取得する際に、loggerにtenantIdをassignすることで、そのリクエストに対するログにTenantIdを付与できる（厳密なスコープは未検証）
+
+---
+
+See [AuthGuard](./src/auth.guard.ts)
+
+---
+
+## 全てのErrorをCatchするExceptionFilterを実装し、エラーをロギングする。
+
+- NestJSは、デフォルトでは全てのエラーをロギングするわけではない
+- ドキュメントの通り、全てのエラーをキャッチするExceptionsFilterを実装する
+- useClass構文を用いてExceptionsFilterを注入することで、AuthGuardで設定したPinoLoggerを利用できる。
+
+[Exception filters \| NestJS \- A progressive Node\.js framework](https://docs.nestjs.com/exception-filters#catch-everything)
+
+---
+
+See [AllExceptionsFilter](./src/all-exceptions.filter.ts)
+
+---
+
+## デモ
+
+---
+
+## まとめ
+
+- `nestjs-pino` でログにRequestIdとTenantIdを含める
+- 自前で実装したExceptionFilterをuseClass構文を用いて注入することで、全てのエラーをtenantId付きでログに出力できる
+
+---
+
+# おわりに
+
+---
+
+## NestJSを用いたマルチテナントSaaSについて
+
+- 今回ご紹介したのは、justInCaseTechnologiesでの取り組みの一部です
+- また、私だけでなくチームのメンバーと合わせて取り組んだ成果でもあります
+- もっと知りたいという方、ぜひお話したいです！
+
+---
+
+## 絶賛採用中！
+
+まずはテックブログをご覧ください💁‍♂️
 
 ---
 
