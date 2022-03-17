@@ -1,11 +1,12 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { RouterModule } from '@nestjs/core';
+import { APP_GUARD } from '@nestjs/core';
 import { MongooseModule } from '@nestjs/mongoose';
 import { LoggerModule } from 'nestjs-pino';
 import { v4 } from 'uuid';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { AuthGuard } from './auth.guard';
 import { CatsModule } from './cats/cats.module';
 import { DogsModule } from './dogs/dogs.module';
 import { MongooseAsyncProvider } from './mongoose-async.provider';
@@ -30,16 +31,11 @@ import { MongooseAsyncProvider } from './mongoose-async.provider';
       useClass: MongooseAsyncProvider,
     }),
     CatsModule,
-    RouterModule.register([{
-      path: ':tenantId',  // RouterModuleで利用するパスでもパラメーターは有効。
-      module: CatsModule,
-    }, {
-      path: ':tenantId',
-      module: DogsModule,
-    }]),
     DogsModule
   ],
   controllers: [AppController],
-  providers: [AppService, MongooseAsyncProvider],
+  providers: [AppService, {
+    provide: APP_GUARD, useClass: AuthGuard
+  }, MongooseAsyncProvider],
 })
 export class AppModule { }
