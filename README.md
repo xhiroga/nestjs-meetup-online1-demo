@@ -91,7 +91,7 @@ See [AppModule](./src/app.module.ts)
 
 ---
 
-## TL;DR
+## まとめ
 
 - AuthGuardで認証を行い、テナントIDをどこからでも取得可能にした
 - useClass構文でトップレベルのモジュールにAuthGuardを注入することで、LoggerをDIできた
@@ -142,10 +142,8 @@ MongoDB事例の多さから、手堅くMongooseを選定しました。
 | mongoose | 公式Moduleあり | 実績が多い, NestJS公式ドキュメントでも取り上げられている, Transactionが使える | 公式Moduleはあるが、複数Connectionをサポートしていない |
 | Typegoose | - | クラスやデコレーターを使ってモデルを素早く構築できる | 設定難易度が高い |
 | TypeORM | 公式Moduleあり | 事例が多い（ただし、多くはRDBのもの） | MongoDB4系をサポートしておらず、結果Transactionが使えない |
-| MikroORM | MikroORM公式のNestJS Moduleあり
-https://docs.nestjs.com/recipes/mikroorm |  | 事例が少ない |
-| Prisma | Moduleのサポートはなし。ただし、公式ドキュメントに解説あり。
-https://docs.nestjs.com/recipes/prisma |  | MongoDBサポートはPreview |
+| MikroORM | MikroORM公式のNestJS Moduleあり https://docs.nestjs.com/recipes/mikroorm |  | 事例が少ない |
+| Prisma | Moduleのサポートはなし。ただし、公式ドキュメントに解説あり。 https://docs.nestjs.com/recipes/prisma |  | MongoDBサポートはPreview |
 | MongoDB SDK | - | ORM相当の処理を自前で書く必要がある | 柔軟性が高い |
 
 ---
@@ -165,7 +163,7 @@ https://docs.nestjs.com/recipes/prisma |  | MongoDBサポートはPreview |
 ```shell
 # https://github.com/xhiroga/nestjs-meetup-online1-demo
 % yarn dev
-% curl localhost:33000/mytenant/cats
+% curl localhost:33000/cats
 ```
 
 ---
@@ -192,7 +190,7 @@ export const CatsService {
 
     async  getCats() {
         const connection = await this.connectionProvider.getConnection();
-        const cats = await connectionProvider.model('cats').find();
+        const cats = await connection.model('cats').find();
         return cats;
     }
 }
@@ -221,7 +219,7 @@ export class ConnectionProvider{
 
 ## まとめ
 
-単にMongooseをリクエストスコープで利用するとコネクション数に問題が発生する。
+単にMongooseModuleをリクエストスコープで利用するとコネクション数に問題が発生する。
 MongoDBのコネクションを自前で管理し、Model生成時に適切に注入することで要件とパフォーマンスを両立できる。
 
 ---
@@ -233,11 +231,11 @@ MongoDBのコネクションを自前で管理し、Model生成時に適切に�
 ## TL;DR
 
 - ログにRequestIdとTenantIdを含める
-- 全てのErrorをCatchするExceptionFilterを実装し、エラーをロギングする
+- 全てのErrorをCatchするExceptionsFilterを実装し、エラーを確実にログする
 
 ---
 
-## ログにRequestIdとTenantIdを含める。
+## ログにリクエストIDとテナントIDを含める。
 
 - `nestjs-pino` を用いる
 - `AuthGuard` でRequestIdを取得する際に、loggerにtenantIdをassignすることで、そのリクエストに対するログにTenantIdを付与できる（厳密なスコープは未検証）
@@ -248,7 +246,7 @@ See [AuthGuard](./src/auth.guard.ts)
 
 ---
 
-## 全てのErrorをCatchするExceptionFilterを実装し、エラーをロギングする。
+## 全てのErrorをCatchするExceptionsFilterを実装し、エラーを確実にログする
 
 - NestJSは、デフォルトでは全てのエラーをロギングするわけではない
 - ドキュメントの通り、全てのエラーをキャッチするExceptionsFilterを実装する
@@ -269,7 +267,7 @@ See [AllExceptionsFilter](./src/all-exceptions.filter.ts)
 ## まとめ
 
 - `nestjs-pino` でログにRequestIdとTenantIdを含める
-- 自前で実装したExceptionFilterをuseClass構文を用いて注入することで、全てのエラーをtenantId付きでログに出力できる
+- 自前で実装したExceptionsFilterをuseClass構文を用いて注入することで、全てのエラーをtenantId付きでログに出力できる
 
 ---
 
